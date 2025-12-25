@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Gerenciador Financeiro Pro - Controle suas finanças de forma simples e eficiente com integração Google Sheets">
+    <meta name="theme-color" content="#3B82F6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <title>Gerenciador Financeiro Pro v4.1.2</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <!-- SheetJS para manipulação de Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>💰 Financeiro Pro</h1>
+                <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu">☰</button>
+            </div>
+            
+            <!-- Botão de Importar da Planilha -->
+            <div class="sidebar-sync-button">
+                <button class="btn btn-sync" id="btnImportFromSheets" onclick="importarDaPlanilha()" title="Importar dados da planilha Google Sheets">
+                    <span class="sync-icon">🔄</span>
+                    <span class="sync-text">Importar da Planilha</span>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <h3>Principal</h3>
+                    <button class="nav-button active" data-view="dashboard">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-text">Dashboard</span>
+                    </button>
+                    <button class="nav-button" data-view="transactions">
+                        <span class="nav-icon">💳</span>
+                        <span class="nav-text">Transações</span>
+                    </button>
+                    <button class="nav-button" data-view="accounts">
+                        <span class="nav-icon">🏦</span>
+                        <span class="nav-text">Contas</span>
+                    </button>
+                    <button class="nav-button" data-view="categories">
+                        <span class="nav-icon">🏷️</span>
+                        <span class="nav-text">Categorias</span>
+                    </button>
+                </div>
+
+                <div class="nav-section">
+                    <h3>Vendas</h3>
+                    <button class="nav-button" data-view="sales">
+                        <span class="nav-icon">🛒</span>
+                        <span class="nav-text">Vendas</span>
+                    </button>
+                    <button class="nav-button" data-view="customers">
+                        <span class="nav-icon">👥</span>
+                        <span class="nav-text">Clientes</span>
+                    </button>
+                    <button class="nav-button" data-view="products">
+                        <span class="nav-icon">📦</span>
+                        <span class="nav-text">Produtos</span>
+                    </button>
+                </div>
+
+                <div class="nav-section">
+                    <h3>Recebíveis</h3>
+                    <button class="nav-button" data-view="debtors">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Devedores</span>
+                    </button>
+                </div>
+
+                <div class="nav-section">
+                    <h3>Planejamento</h3>
+                    <button class="nav-button" data-view="budgets">
+                        <span class="nav-icon">📋</span>
+                        <span class="nav-text">Orçamentos</span>
+                    </button>
+                    <button class="nav-button" data-view="goals">
+                        <span class="nav-icon">🎯</span>
+                        <span class="nav-text">Metas</span>
+                    </button>
+                    <button class="nav-button" data-view="investments">
+                        <span class="nav-icon">📈</span>
+                        <span class="nav-text">Investimentos</span>
+                    </button>
+                    <button class="nav-button" data-view="debts">
+                        <span class="nav-icon">💳</span>
+                        <span class="nav-text">Dívidas</span>
+                    </button>
+                </div>
+
+                <div class="nav-section">
+                    <h3>Análises</h3>
+                    <button class="nav-button" data-view="reports">
+                        <span class="nav-icon">📑</span>
+                        <span class="nav-text">Relatórios</span>
+                    </button>
+                </div>
+
+                <div class="nav-section">
+                    <h3>Sistema</h3>
+                    <button class="nav-button" data-view="activity-logs">
+                        <span class="nav-icon">📋</span>
+                        <span class="nav-text">Logs de Atividade</span>
+                    </button>
+                    <button class="nav-button" data-view="import-export">
+                        <span class="nav-icon">📤</span>
+                        <span class="nav-text">Importar/Exportar</span>
+                    </button>
+                    <button class="nav-button" data-view="google-sheets">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-text">Google Sheets</span>
+                        <span class="sync-indicator" id="syncIndicator" title="Status de sincronização"></span>
+                    </button>
+                    <button class="nav-button" data-view="settings">
+                        <span class="nav-icon">⚙️</span>
+                        <span class="nav-text">Configurações</span>
+                    </button>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="profile-selector">
+                    <select id="profileSelector" onchange="uiManager.switchProfile(this.value)">
+                        <!-- Preenchido via JavaScript -->
+                    </select>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- HEADER -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu">☰</button>
+                    <h2 id="pageTitle">📊 Dashboard</h2>
+                </div>
+                <div class="header-actions">
+                    <!-- Sync Status -->
+                    <div class="sync-status" id="syncStatus" title="Status de sincronização">
+                        <span class="sync-icon" id="syncIcon">☁️</span>
+                        <span class="sync-text" id="syncText">Offline</span>
+                    </div>
+                    <!-- User Info -->
+                    <div class="user-info" id="userInfo">
+                        <span class="user-avatar" id="userAvatar">👤</span>
+                        <span class="user-name" id="userName">Usuário</span>
+                    </div>
+                    <button class="btn-header" onclick="uiManager.exportJSON()" title="Fazer Backup (Ctrl+S)">
+                        <span>💾</span>
+                        <span class="btn-text">Backup</span>
+                    </button>
+                    <button class="btn-header" onclick="syncWithGoogleSheets()" title="Sincronizar com Google Sheets" id="btnSync">
+                        <span>🔄</span>
+                        <span class="btn-text">Sync</span>
+                    </button>
+                    <button class="btn-header btn-theme" onclick="uiManager.toggleDarkMode()" title="Alternar Tema">
+                        <span id="themeIcon">🌙</span>
+                    </button>
+                    <button class="btn-header btn-logout" onclick="handleLogout()" title="Sair">
+                        <span>🚪</span>
+                        <span class="btn-text">Sair</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- CONTENT AREA -->
+            <div class="content">
+                <!-- DASHBOARD VIEW -->
+                <section id="dashboardView" class="view-section active">
+                    <div class="loading">Carregando...</div>
+                </section>
+
+                <!-- TRANSACTIONS VIEW -->
+                <section id="transactionsView" class="view-section"></section>
+
+                <!-- ACCOUNTS VIEW -->
+                <section id="accountsView" class="view-section"></section>
+
+                <!-- CATEGORIES VIEW -->
+                <section id="categoriesView" class="view-section"></section>
+
+                <!-- SALES VIEW -->
+                <section id="salesView" class="view-section"></section>
+
+                <!-- CUSTOMERS VIEW -->
+                <section id="customersView" class="view-section"></section>
+
+                <!-- PRODUCTS VIEW -->
+                <section id="productsView" class="view-section"></section>
+
+                <!-- DEBTORS VIEW -->
+                <section id="debtorsView" class="view-section"></section>
+
+                <!-- BUDGETS VIEW -->
+                <section id="budgetsView" class="view-section"></section>
+
+                <!-- GOALS VIEW -->
+                <section id="goalsView" class="view-section"></section>
+
+                <!-- INVESTMENTS VIEW -->
+                <section id="investmentsView" class="view-section"></section>
+
+                <!-- DEBTS VIEW -->
+                <section id="debtsView" class="view-section"></section>
+
+                <!-- REPORTS VIEW -->
+                <section id="reportsView" class="view-section"></section>
+
+                <!-- ACTIVITY LOGS VIEW -->
+                <section id="activityLogsView" class="view-section"></section>
+
+                <!-- IMPORT/EXPORT VIEW -->
+                <section id="importExportView" class="view-section"></section>
+
+                <!-- GOOGLE SHEETS VIEW -->
+                <section id="googleSheetsView" class="view-section"></section>
+
+                <!-- SETTINGS VIEW -->
+                <section id="settingsView" class="view-section"></section>
+            </div>
+        </main>
+    </div>
+
+    <!-- OVERLAY para mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- SCRIPTS -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js?v=4.3"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/google-sheets.js?v=10"></script>
+    <script src="js/finance-manager.js"></script>
+    <script src="js/sales-manager.js"></script>
+    <script src="js/debtors-manager.js"></script>
+    <script src="js/ui-manager.js?v=4.3"></script>
+    <script src="js/ui-views.js"></script>
+    <script src="js/sales-views.js"></script>
+    <script src="js/debtors-views.js"></script>
+    <script src="js/logs-view.js"></script>
+    <script src="js/google-sheets-view.js?v=10"></script>
+    
+    <script>
+        // Verificar autenticação ao carregar
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar se está logado
+            if (!authManager.isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Garantir que uiManager seja inicializado
+            if (!window.uiManager && typeof UIManager === 'function') {
+                window.uiManager = new UIManager();
+                window.uiManager.init();
+            }
+
+            // Atualizar informações do usuário no header
+            updateUserInfo();
+            
+            // Atualizar seletor de perfil
+            updateProfileSelector();
+            
+            // Setup mobile menu
+            setupMobileMenu();
+            
+            // Atualizar ícone do tema
+            updateThemeIcon();
+            
+            // Inicializar status de sincronização
+            updateSyncStatusUI();
+            
+            // Escutar mudanças no status de sincronização
+            window.addEventListener('syncStatusChanged', updateSyncStatusUI);
+            window.addEventListener('googleSheetsConnected', updateSyncStatusUI);
+            
+            // Inicializar Google Sheets automaticamente
+            initGoogleSheetsAuto();
+        });
+
+        function updateUserInfo() {
+            let user = null;
+            
+            // Tentar obter do authManager primeiro
+            if (typeof authManager !== 'undefined' && authManager.getCurrentUser) {
+                user = authManager.getCurrentUser();
+            }
+            
+            // Fallback: ler diretamente do localStorage
+            if (!user) {
+                try {
+                    // Tentar ler sessão direta (login via Google)
+                    const sessionData = localStorage.getItem(CONFIG.STORAGE_KEYS.SESSION);
+                    if (sessionData) {
+                        user = JSON.parse(sessionData);
+                    }
+                } catch (e) {
+                    console.error('Erro ao ler sessão:', e);
+                }
+            }
+            
+            if (user) {
+                const avatarEl = document.getElementById('userAvatar');
+                const nameEl = document.getElementById('userName');
+                const userInfo = document.getElementById('userInfo');
+                
+                // Se tem foto do Google, usar imagem
+                if (user.googlePicture && avatarEl) {
+                    avatarEl.innerHTML = `<img src="${user.googlePicture}" alt="${user.displayName}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">`;
+                } else if (avatarEl) {
+                    avatarEl.textContent = user.avatar || '👤';
+                }
+                
+                if (nameEl) {
+                    nameEl.textContent = user.displayName || user.username || 'Usuário';
+                }
+                
+                if (userInfo && user.color) {
+                    userInfo.style.borderColor = user.color;
+                }
+                
+                // Mostrar email se login via Google
+                if (user.loginMethod === 'google' && user.email) {
+                    nameEl.title = user.email;
+                }
+            }
+        }
+
+        async function handleLogout() {
+            const confirmed = await Modal.confirmAction(
+                'Sair do Sistema',
+                'Deseja realmente sair do sistema?',
+                { confirmText: 'Sair', dangerous: false }
+            );
+            
+            if (confirmed) {
+                authManager.logout();
+                window.location.href = 'login.html';
+            }
+        }
+
+        function updateProfileSelector() {
+            const selector = document.getElementById('profileSelector');
+            if (selector && financeManager) {
+                selector.innerHTML = financeManager.businesses.map(b => 
+                    `<option value="${b.id}" ${b.id === financeManager.currentBusinessId ? 'selected' : ''}>
+                        ${b.name}
+                    </option>`
+                ).join('');
+            }
+        }
+
+        function setupMobileMenu() {
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    sidebar.classList.toggle('open');
+                    overlay.classList.toggle('active');
+                });
+            }
+
+            if (overlay) {
+                overlay.addEventListener('click', () => {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('active');
+                });
+            }
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                });
+            }
+        }
+
+        function updateThemeIcon() {
+            const themeIcon = document.getElementById('themeIcon');
+            if (themeIcon) {
+                const isDark = document.body.classList.contains('dark-mode') || 
+                              localStorage.getItem('gfp_dark_mode') === 'true';
+                themeIcon.textContent = isDark ? '☀️' : '🌙';
+            }
+        }
+
+        function updateSyncStatusUI() {
+            const status = googleSheetsManager.getSyncStatus();
+            const syncIcon = document.getElementById('syncIcon');
+            const syncText = document.getElementById('syncText');
+            const syncIndicator = document.getElementById('syncIndicator');
+            
+            const statusConfig = {
+                'connected': { icon: '☁️', text: 'Conectado', class: 'connected' },
+                'syncing': { icon: '🔄', text: 'Sincronizando...', class: 'syncing' },
+                'synced': { icon: '✓', text: 'Sincronizado', class: 'synced' },
+                'error': { icon: '⚠️', text: 'Erro', class: 'error' },
+                'disconnected': { icon: '☁️', text: 'Offline', class: 'disconnected' }
+            };
+            
+            const config = statusConfig[status.status] || statusConfig.disconnected;
+            
+            if (syncIcon) syncIcon.textContent = config.icon;
+            if (syncText) syncText.textContent = config.text;
+            if (syncIndicator) {
+                syncIndicator.className = 'sync-indicator ' + config.class;
+            }
+            
+            // Atualizar classe do status
+            const syncStatus = document.getElementById('syncStatus');
+            if (syncStatus) {
+                syncStatus.className = 'sync-status ' + config.class;
+            }
+        }
+
+        async function initGoogleSheetsAuto() {
+            // Aguardar um pouco para garantir que tudo foi carregado
+            setTimeout(async () => {
+                if (window.googleSheetsManager) {
+                    console.log('🚀 Iniciando conexão automática com Google Sheets...');
+                    
+                    // Verificar se já está autenticado
+                    if (googleSheetsManager.checkAuth()) {
+                        console.log('✅ Já conectado ao Google Sheets');
+                        updateSyncStatusUI();
+                        return;
+                    }
+                    
+                    // Tentar inicializar e conectar automaticamente
+                    try {
+                        await googleSheetsManager.initialize();
+                        console.log('✅ Google Sheets API pronta');
+                    } catch (e) {
+                        console.log('⚠️ Erro na inicialização automática:', e);
+                    }
+                }
+            }, 1000);
+        }
+
+        async function syncWithGoogleSheets() {
+            // Credenciais já estão configuradas no código
+            if (!googleSheetsManager.checkAuth()) {
+                Toast.show('Conectando ao Google Sheets...', 'info');
+                const authorized = await googleSheetsManager.authorize();
+                if (!authorized) {
+                    Toast.show('Falha na autorização. Tente novamente.', 'error');
+                    return;
+                }
+            }
+            
+            await googleSheetsManager.syncAll();
+        }
+
+        // Escutar evento de dados importados para atualizar a UI
+        window.addEventListener('dataImported', () => {
+            console.log('🔄 Dados importados, atualizando interface...');
+            if (uiManager && uiManager.refreshCurrentView) {
+                uiManager.refreshCurrentView();
+            }
+            updateSyncStatusUI();
+        });
+
+        // Função para importar dados da planilha (botão no sidebar)
+        async function importarDaPlanilha() {
+            const btn = document.getElementById('btnImportFromSheets');
+            const originalText = btn ? btn.innerHTML : '';
+            
+            try {
+                // Mostrar loading
+                if (btn) {
+                    btn.innerHTML = '<span class="sync-icon spinning">🔄</span><span class="sync-text">Importando...</span>';
+                    btn.disabled = true;
+                }
+                
+                Toast.show('Importando dados da planilha...', 'info');
+                
+                // Conectar se não estiver conectado
+                if (!googleSheetsManager.isConnected) {
+                    await googleSheetsManager.connect();
+                }
+                
+                // Importar dados
+                const success = await googleSheetsManager.importAllData();
+                
+                if (success) {
+                    // Recarregar dados dos managers
+                    if (typeof financeManager !== 'undefined') {
+                        financeManager.loadAllData();
+                    }
+                    if (typeof salesManager !== 'undefined') {
+                        salesManager.loadAllData();
+                    }
+                    if (typeof debtorsManager !== 'undefined') {
+                        debtorsManager.loadAllData();
+                    }
+                    
+                    // Atualizar interface
+                    if (uiManager && uiManager.refreshCurrentView) {
+                        uiManager.refreshCurrentView();
+                    }
+                    
+                    Toast.show('Dados importados com sucesso!', 'success');
+                } else {
+                    Toast.show('Nenhum dado encontrado na planilha', 'warning');
+                }
+            } catch (error) {
+                console.error('Erro ao importar:', error);
+                Toast.show('Erro ao importar: ' + error.message, 'error');
+            } finally {
+                // Restaurar botão
+                if (btn) {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        // Atalhos de teclado
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+S para backup
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                uiManager.exportJSON();
+            }
+            
+            // Ctrl+Shift+S para sincronizar
+            if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+                e.preventDefault();
+                syncWithGoogleSheets();
+            }
+            
+            // Ctrl+Shift+I para importar
+            if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                e.preventDefault();
+                importarDaPlanilha();
+            }
+        });
+    </script>
+</body>
+</html>

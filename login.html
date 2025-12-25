@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Gerenciador Financeiro Pro</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+    
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
+            --secondary: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --dark: #1F2937;
+            --light: #F9FAFB;
+            --gray: #6B7280;
+            --border: #E5E7EB;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 600px;
+        }
+
+        body.dark-mode .login-container {
+            background: #1F2937;
+        }
+
+        .login-left {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: white;
+        }
+
+        .login-left h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .login-left .version {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+
+        .login-left p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .features-list {
+            margin-top: 30px;
+            list-style: none;
+        }
+
+        .features-list li {
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+        }
+
+        .login-right {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h2 {
+            color: var(--dark);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        body.dark-mode .login-header h2 {
+            color: white;
+        }
+
+        .login-header p {
+            color: var(--gray);
+        }
+
+        .login-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .login-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            cursor: pointer;
+            color: var(--gray);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .login-tab.active {
+            color: var(--primary);
+        }
+
+        .login-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        body.dark-mode .login-tab {
+            color: #9CA3AF;
+        }
+
+        body.dark-mode .login-tab.active {
+            color: var(--primary);
+        }
+
+        .login-form {
+            display: none;
+        }
+
+        .login-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--dark);
+            font-weight: 500;
+        }
+
+        body.dark-mode .form-group label {
+            color: #E5E7EB;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        body.dark-mode .form-group input,
+        body.dark-mode .form-group select {
+            background: #374151;
+            border-color: #4B5563;
+            color: white;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-google {
+            background: white;
+            color: var(--dark);
+            border: 2px solid var(--border);
+            margin-top: 15px;
+        }
+
+        .btn-google:hover {
+            background: var(--light);
+            border-color: var(--gray);
+        }
+
+        body.dark-mode .btn-google {
+            background: #374151;
+            color: white;
+            border-color: #4B5563;
+        }
+
+        .google-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: var(--gray);
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .divider span {
+            padding: 0 15px;
+            font-size: 0.9rem;
+        }
+
+        .users-info {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .users-info h4 {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .user-badges {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: var(--light);
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        body.dark-mode .user-badge {
+            background: #374151;
+            color: #E5E7EB;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-error {
+            background: #FEE2E2;
+            color: #DC2626;
+            border: 1px solid #FECACA;
+        }
+
+        .alert-success {
+            background: #D1FAE5;
+            color: #059669;
+            border: 1px solid #A7F3D0;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        body.dark-mode .theme-toggle {
+            background: #374151;
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                grid-template-columns: 1fr;
+                max-width: 450px;
+            }
+
+            .login-left {
+                display: none;
+            }
+
+            .login-right {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🌙</button>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="login-container">
+        <div class="login-left">
+            <h1>💰 Financeiro Pro</h1>
+            <span class="version">v4.1</span>
+            <p>Controle suas finanças de forma inteligente e eficiente com integração Google Sheets.</p>
+            
+            <ul class="features-list">
+                <li>📊 Dashboard completo</li>
+                <li>☁️ Sincronização com Google Sheets</li>
+                <li>🛒 Gestão de vendas e clientes</li>
+                <li>👤 Controle de devedores</li>
+                <li>📈 Investimentos e metas</li>
+                <li>💳 Controle de dívidas</li>
+            </ul>
+        </div>
+
+        <div class="login-right">
+            <div class="login-header">
+                <h2>Bem-vindo!</h2>
+                <p>Faça login para continuar</p>
+            </div>
+
+            <div class="alert alert-error" id="alertError">
+                <span id="errorMessage">Erro ao fazer login</span>
+            </div>
+
+            <div class="alert alert-success" id="alertSuccess">
+                <span id="successMessage">Login realizado com sucesso!</span>
+            </div>
+
+            <div class="login-tabs">
+                <button class="login-tab active" onclick="switchTab('password')">🔐 Senha</button>
+                <button class="login-tab" onclick="switchTab('google')">🔵 Google</button>
+            </div>
+
+            <!-- Login com Senha -->
+            <div class="login-form active" id="passwordForm">
+                <div class="form-group">
+                    <label for="username">Usuário</label>
+                    <select id="username" required>
+                        <option value="">Selecione o usuário</option>
+                        <option value="LOVEz">👤 LOVEz</option>
+                        <option value="Ghaby">👩 Ghaby</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" placeholder="Digite sua senha" required>
+                </div>
+
+                <button type="button" class="btn-login btn-primary" onclick="loginWithPassword()">
+                    🔓 Entrar
+                </button>
+            </div>
+
+            <!-- Login com Google -->
+            <div class="login-form" id="googleForm">
+                <p style="text-align: center; color: var(--gray); margin-bottom: 20px;">
+                    Faça login com uma das contas Google autorizadas.
+                </p>
+
+                <div id="googleButtonContainer" style="display: flex; justify-content: center;">
+                    <!-- Google Sign-In button will be rendered here -->
+                </div>
+
+                <button type="button" class="btn-login btn-google" onclick="initGoogleLogin()">
+                    <svg class="google-icon" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Entrar com Google
+                </button>
+            </div>
+
+            <div class="users-info">
+                <h4>Usuários Autorizados</h4>
+                <div class="user-badges">
+                    <div class="user-badge">
+                        <span>👤</span>
+                        <span>LOVEz</span>
+                    </div>
+                    <div class="user-badge">
+                        <span>👩</span>
+                        <span>Ghaby</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        // Configuração do Google OAuth
+        const GOOGLE_CLIENT_ID = '966115891038-snce1gl8btjoud7cfefi0i5d5mniecrh.apps.googleusercontent.com';
+
+        // Usuários autorizados
+        const authorizedUsers = {
+            'LOVEz': {
+                id: 'user_lovez',
+                password: 'LVz1928',
+                displayName: 'LOVEz',
+                avatar: '👤',
+                color: '#3B82F6',
+                role: 'admin',
+                emails: ['lovez65245@gmail.com', 'lovez.drop65245@gmail.com', 'fireconta01@gmail.com', 'carlosff65245@gmail.com']
+            },
+            'Ghaby': {
+                id: 'user_ghaby',
+                password: 'Ghaby2024',
+                displayName: 'Ghaby',
+                avatar: '👩',
+                color: '#EC4899',
+                role: 'admin',
+                emails: ['vitoriaghabriella80@gmail.com']
+            }
+        };
+
+        // Mapeamento de emails
+        const authorizedEmails = {};
+        for (const [username, user] of Object.entries(authorizedUsers)) {
+            for (const email of user.emails) {
+                authorizedEmails[email.toLowerCase()] = { ...user, username };
+            }
+        }
+
+        // Verificar se já está logado
+        document.addEventListener('DOMContentLoaded', () => {
+            applyTheme();
+            checkExistingSession();
+        });
+
+        function checkExistingSession() {
+            try {
+                const session = localStorage.getItem(CONFIG.STORAGE_KEYS.SESSION);
+                if (session) {
+                    const sessionData = JSON.parse(session);
+                    if (sessionData.expiresAt && new Date(sessionData.expiresAt) > new Date()) {
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('Erro ao verificar sessão:', e);
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.login-form').forEach(f => f.classList.remove('active'));
+            
+            if (tab === 'password') {
+                document.querySelector('.login-tab:first-child').classList.add('active');
+                document.getElementById('passwordForm').classList.add('active');
+            } else {
+                document.querySelector('.login-tab:last-child').classList.add('active');
+                document.getElementById('googleForm').classList.add('active');
+            }
+
+            hideAlerts();
+        }
+
+        function showError(message) {
+            const alert = document.getElementById('alertError');
+            document.getElementById('errorMessage').textContent = message;
+            alert.classList.add('show');
+            document.getElementById('alertSuccess').classList.remove('show');
+        }
+
+        function showSuccess(message) {
+            const alert = document.getElementById('alertSuccess');
+            document.getElementById('successMessage').textContent = message;
+            alert.classList.add('show');
+            document.getElementById('alertError').classList.remove('show');
+        }
+
+        function hideAlerts() {
+            document.getElementById('alertError').classList.remove('show');
+            document.getElementById('alertSuccess').classList.remove('show');
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('show');
+        }
+
+        // Login com senha
+        function loginWithPassword() {
+            hideAlerts();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username) {
+                showError('Selecione um usuário');
+                return;
+            }
+
+            if (!password) {
+                showError('Digite sua senha');
+                return;
+            }
+
+            const user = authorizedUsers[username];
+            if (!user) {
+                showError('Usuário não encontrado');
+                return;
+            }
+
+            if (user.password !== password) {
+                showError('Senha incorreta');
+                return;
+            }
+
+            // Criar sessão
+            createSession(user, username, 'password');
+        }
+
+        // Login com Google
+        function initGoogleLogin() {
+            showLoading();
+            
+            try {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleGoogleResponse,
+                    auto_select: false
+                });
+
+                google.accounts.id.prompt((notification) => {
+                    hideLoading();
+                    if (notification.isNotDisplayed()) {
+                        console.log('Google prompt not displayed:', notification.getNotDisplayedReason());
+                        showError('Não foi possível abrir o login do Google. Verifique se pop-ups estão permitidos.');
+                    } else if (notification.isSkippedMoment()) {
+                        console.log('Google prompt skipped:', notification.getSkippedReason());
+                    }
+                });
+            } catch (e) {
+                hideLoading();
+                console.error('Erro ao inicializar Google:', e);
+                showError('Erro ao conectar com Google. Tente novamente.');
+            }
+        }
+
+        function handleGoogleResponse(response) {
+            hideLoading();
+            
+            if (!response.credential) {
+                showError('Erro ao obter credenciais do Google');
+                return;
+            }
+
+            try {
+                // Decodificar o JWT
+                const payload = JSON.parse(atob(response.credential.split('.')[1]));
+                const email = payload.email.toLowerCase();
+                
+                // Verificar se o email está autorizado
+                const authorizedUser = authorizedEmails[email];
+                
+                if (!authorizedUser) {
+                    showError(`Email não autorizado: ${email}`);
+                    return;
+                }
+
+                // Criar sessão com dados do Google
+                createSession(authorizedUser, authorizedUser.username, 'google', {
+                    email: email,
+                    googleName: payload.name,
+                    googlePicture: payload.picture
+                });
+            } catch (e) {
+                console.error('Erro ao processar resposta do Google:', e);
+                showError('Erro ao processar login do Google');
+            }
+        }
+
+        function createSession(user, username, method, extra = {}) {
+            const sessionToken = generateSessionToken();
+            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 horas
+
+            const session = {
+                id: user.id,
+                username: username,
+                displayName: user.displayName,
+                avatar: user.avatar,
+                color: user.color,
+                role: user.role,
+                email: extra.email || user.emails[0],
+                googleName: extra.googleName || user.displayName,
+                googlePicture: extra.googlePicture || null,
+                sessionToken: sessionToken,
+                loginAt: new Date().toISOString(),
+                expiresAt: expiresAt,
+                lastActivity: new Date().toISOString(),
+                loginMethod: method
+            };
+
+            // Salvar sessão no localStorage
+            try {
+                const sessionKey = CONFIG && CONFIG.STORAGE_KEYS && CONFIG.STORAGE_KEYS.SESSION 
+                    ? CONFIG.STORAGE_KEYS.SESSION 
+                    : 'gfp_session';
+                localStorage.setItem(sessionKey, JSON.stringify(session));
+                console.log('Sessão salva com sucesso:', sessionKey);
+            } catch (e) {
+                console.error('Erro ao salvar sessão:', e);
+            }
+            
+            showSuccess('Login realizado com sucesso! Redirecionando...');
+            
+            // Redirecionar após 1 segundo
+            setTimeout(() => {
+                console.log('Redirecionando para index.html...');
+                window.location.replace('index.html');
+            }, 1000);
+        }
+
+        function generateSessionToken() {
+            const timestamp = Date.now().toString(36);
+            const random = Math.random().toString(36).substr(2, 15);
+            const userAgent = navigator.userAgent.length.toString(36);
+            return `${timestamp}_${random}_${userAgent}`;
+        }
+
+        // Tema
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('gfp_dark_mode', isDark);
+            document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        function applyTheme() {
+            const isDark = localStorage.getItem('gfp_dark_mode') === 'true';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeToggle').textContent = '☀️';
+            }
+        }
+
+        // Enter para fazer login
+        document.getElementById('password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loginWithPassword();
+            }
+        });
+    </script>
+</body>
+</html>
